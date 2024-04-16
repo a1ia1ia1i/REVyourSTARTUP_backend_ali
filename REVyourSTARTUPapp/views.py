@@ -119,8 +119,8 @@ class GetMainFormByUserView(APIView):
 
     def get(self, request, id):
         try:
-            queryset = MainForm.objects.get(user_id=id)
-            serializer = MainFormSerializer(queryset)
+            queryset = MainForm.objects.filter(user_id=id)
+            serializer = MainFormSerializer(queryset, many=True)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
         except MainForm.DoesNotExist as error:
