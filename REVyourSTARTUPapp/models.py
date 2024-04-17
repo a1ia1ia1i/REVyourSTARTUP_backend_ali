@@ -38,16 +38,16 @@ class RevForm(models.Model):
     rev_form_id = models.AutoField(primary_key=True)
 
     # "valuationParameters"
-    last_year_total_revenue = models.IntegerField()
-    amount_needed = models.IntegerField()
+    last_year_total_revenue = models.DecimalField(max_digits=12, decimal_places=2)
+    amount_needed = models.DecimalField(max_digits=12, decimal_places=2)
     
     # "hit3YearGoals"
-    three_years_effective_interest = models.IntegerField()
-    five_years_effective_interest = models.IntegerField()
-    seven_years_effective_interest = models.IntegerField()
+    three_years_effective_interest = models.DecimalField(max_digits=12, decimal_places=2)
+    five_years_effective_interest = models.DecimalField(max_digits=12, decimal_places=2)
+    seven_years_effective_interest = models.DecimalField(max_digits=12, decimal_places=2)
     
     revenue_multiplier = models.IntegerField()
-    exit_amount = models.IntegerField()
+    exit_amount = models.DecimalField(max_digits=12, decimal_places=2)
     
     # "exitYears"
     year0_percentage = models.IntegerField()
@@ -78,7 +78,7 @@ class RevForm(models.Model):
 
     # "realityCheck1"
     total_market = models.DecimalField(max_digits=12, decimal_places=2)
-    captured_at_year5 = models.IntegerField()
+    captured_at_year5 = models.DecimalField(max_digits=12, decimal_places=2)
 
 
     created = models.DateTimeField(default=timezone.now)
@@ -133,7 +133,7 @@ class RevFormRows(models.Model):
     quick_modeling_percentage = models.IntegerField()
     revenue = models.DecimalField(max_digits=12, decimal_places=2)
     customers = models.IntegerField()
-    your_percentage = models.IntegerField()
+    your_percentage = models.DecimalField(max_digits=12, decimal_places=2)
     total_revenue = models.DecimalField(max_digits=12, decimal_places=2)
 
     created = models.DateTimeField(default=timezone.now)
