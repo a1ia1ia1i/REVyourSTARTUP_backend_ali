@@ -359,6 +359,12 @@ class ProFormaView(APIView):
         return Response(built_pro_forma, status=status.HTTP_200_OK)
     
 
+
+class DepreciationView(APIView):
+    def get(self, request, mainform_id):
+        return Response(status=status.HTTP_200_OK)
+
+
 class TestRowFlattenEndpoint(APIView):
     # THIS ENDPOINT IS FOR TEST PURPOSES ONLY!!
 

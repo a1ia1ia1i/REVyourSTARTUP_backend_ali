@@ -35,6 +35,9 @@ urlpatterns = [
     # ProForma endpoint
     path('form/pro_forma/<int:mainform_id>', ProFormaView.as_view()),
 
+    # Depreciation Form endpoint
+    path('form/depreciation/<int:mainform_id>', DepreciationView.as_view()),
+
     # TEST ENDPOINT
     path('test/', TestRowFlattenEndpoint.as_view()),
 ]

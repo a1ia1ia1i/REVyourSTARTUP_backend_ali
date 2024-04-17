@@ -44,4 +44,21 @@ class ProFormaFoundersSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProFormaFounders
         fields = '__all__'
-        
+
+
+class DepreciationFormSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DepreciationForm
+        fields = '__all__'
+
+
+class DepreciationItemsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DepreciationItems
+        fields = '__all__'
+
+
+class DepreciationScheduleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DepreciationSchedule
+        fields = '__all__'

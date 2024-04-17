@@ -14,6 +14,7 @@ class MainForm(models.Model):
     form_name = models.CharField(blank=True, null=True, max_length=255)
     rev_form = models.ForeignKey('RevForm', on_delete=models.CASCADE, blank=True, null=True)
     pro_forma = models.ForeignKey('ProForma', on_delete=models.CASCADE, blank=True, null=True)
+    depreciation_form = models.ForeignKey('DepreciationForm', on_delete=models.CASCADE, blank=True, null=True)
 
     created = models.DateTimeField(default=timezone.now)
     last_update = models.DateTimeField(default=timezone.now)
@@ -274,3 +275,65 @@ class ProFormaFounders(models.Model):
     class Meta:
         managed = True
         db_table = "pro_forma_founders"
+
+
+class DepreciationForm(models.Model):
+    depreciation_id = models.AutoField(primary_key=True)
+    total_items = models.IntegerField()
+    num_months_depreciation = models.IntegerField()
+
+
+    created = models.DateTimeField(default=timezone.now)
+    last_update = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        self.last_update = timezone.now()
+        super(DepreciationForm, self).save(*args, **kwargs)
+
+    class Meta:
+        managed = True
+        db_table = "depreciation_form"
+
+
+class DepreciationItems(models.Model):
+    depreciation_item_id = models.AutoField(primary_key=True)
+    depreciation_form = models.ForeignKey(DepreciationForm, on_delete=models.CASCADE, blank=True, null=True)
+    category = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+    start_month = models.IntegerField()
+    start_year = models.IntegerField()
+    value_at_time = models.IntegerField()
+    years_left = models.IntegerField()
+    salvage_value = models.IntegerField()
+    method = models.CharField(max_length=255)
+    off_sheet = models.BooleanField()
+
+    created = models.DateTimeField(default=timezone.now)
+    last_update = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        self.last_update = timezone.now()
+        super(DepreciationItems, self).save(*args, **kwargs)
+
+    class Meta:
+        managed = True
+        db_table = "depreciation_items"
+
+
+class DepreciationSchedule(models.Model):
+    depreciation_schedule_id = models.AutoField(primary_key=True)
+    depreciation_item = models.ForeignKey(DepreciationItems, on_delete=models.CASCADE, blank=True, null=True)
+    date = models.DateField()
+    amount = models.CharField(max_length=255)
+
+    created = models.DateTimeField(default=timezone.now)
+    last_update = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        self.last_update = timezone.now()
+        super(DepreciationSchedule, self).save(*args, **kwargs)
+
+    class Meta:
+        managed = True
+        db_table = "depreciation_schedule"
+
