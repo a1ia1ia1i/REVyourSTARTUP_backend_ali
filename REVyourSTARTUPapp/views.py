@@ -8,6 +8,7 @@ from rest_framework import status
 
 from .serializers import *
 from .dataparse import *
+from .yearformparse import *
 
 
 class HealthCheckAPIView(APIView):
@@ -404,6 +405,35 @@ class DepreciationView(APIView):
         depreciation_schedule_serializer = DepreciationScheduleSerializer(depreciaiton_schedules, many=True)
         built_depreciation_form = build_depreciation_form_json(depreciation_form_serializer.data, depreciation_schedule_serializer.data)
         return Response(built_depreciation_form, status=status.HTTP_200_OK)
+    
+
+class YearFormView(APIView):
+    def post(self, request, mainform_id, year_num):
+        if year_num == 1:
+            main_tag = "year1"
+        elif year_num == 2:
+            main_tag = "year2"
+        elif year_num == 3:
+            main_tag = "year3"
+        else:
+            error = "Error: <int:year_num> must be 1, 2, or 3"
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+        year_form_data = request.data.get(main_tag)
+        total_monthly = year_form_data["additionalRevenue"]["totalMonthly"]
+        total_monthly_data_string = monthly_to_string(total_monthly)
+
+        year_form_data["totalMonthlyString"] = total_monthly_data_string
+
+        total_monthly_number_list = string_to_monthly(total_monthly_data_string, True)
+
+        year_form_data["totalMonthlyNumberList"] = total_monthly_number_list
+
+        return Response(year_form_data, status=status.HTTP_200_OK)
+
+
+    def get(self, request, mainform_id, year_num):
+        return Response(status=status.HTTP_200_OK)
 
 
 class TestRowFlattenEndpoint(APIView):

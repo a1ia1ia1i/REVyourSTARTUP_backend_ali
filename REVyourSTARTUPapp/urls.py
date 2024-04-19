@@ -38,6 +38,9 @@ urlpatterns = [
     # Depreciation Form endpoint
     path('form/depreciation/<int:mainform_id>', DepreciationView.as_view()),
 
+    # Endpoint for all Year Form's
+    path('form/year_form/<int:mainform_id>/<int:year_num>', YearFormView.as_view()),
+
     # TEST ENDPOINT
     path('test/', TestRowFlattenEndpoint.as_view()),
 ]
