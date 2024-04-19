@@ -88,7 +88,7 @@ class GetUserByIDView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class CreateMainFormView(APIView):
+#class CreateMainFormView(APIView):
     # View which allows the main form to be created and linked to a user's id
     # JSON
     # {
@@ -96,20 +96,20 @@ class CreateMainFormView(APIView):
     #   'form_name': 'Sample Form Name'
     # }
 
-    def post(self, request):
-        user_id = request.data.get('user_id')
-        form_name = request.data.get("form_name")
-        user = get_object_or_404(User, id=user_id)
-        if form_name:
-            serializer = MainFormSerializer(data={'user': user.id, 'form_name': form_name})
-        else:
-            serializer = MainFormSerializer(data={'user': user.id})
+    # def post(self, request):
+    #     user_id = request.data.get('user_id')
+    #     form_name = request.data.get("form_name")
+    #     user = get_object_or_404(User, id=user_id)
+    #     if form_name:
+    #         serializer = MainFormSerializer(data={'user': user.id, 'form_name': form_name})
+    #     else:
+    #         serializer = MainFormSerializer(data={'user': user.id})
 
-        if serializer.is_valid():
-            serializer.save()
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #     else:
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
     
 
 class GetMainFormByUserView(APIView):
@@ -361,8 +361,49 @@ class ProFormaView(APIView):
 
 
 class DepreciationView(APIView):
+    def post(self, request, mainform_id):
+        depreciation_data = request.data.get("depreciation")
+
+        if depreciation_data is None:
+            # If this tag is missing, create an error and return a BAD_REQUEST Response
+            error = 'Invalid request: Data is either mislabeled or missing entirely'
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            depreciation_schedule = depreciation_data["depreciationSchedule"]
+            depreciation_form = flatten_depreciation_form_json(depreciation_data)
+            depreciation_form_serializer = DepreciationFormSerializer(data=depreciation_form)
+            if depreciation_form_serializer.is_valid():
+                depreciation_form_serializer.save()
+                depreciation_pk = depreciation_form_serializer.data['depreciation_id']
+                for i in range(len(depreciation_schedule)):
+                    schedule_entry = {"date": depreciation_schedule[i]["date"], "amount": float(depreciation_schedule[i]["amount"])}
+                    depreciation_schedule_serializer = DepreciationScheduleSerializer(data=schedule_entry)
+                    if depreciation_schedule_serializer.is_valid():
+                        depreciation_schedule_serializer.save()
+                        depreciation_schedule_pk = depreciation_schedule_serializer.data['depreciation_schedule_id']
+                        DepreciationSchedule.objects.filter(depreciation_schedule_id=depreciation_schedule_pk).update(depreciation_form=depreciation_pk)
+                    else:
+                        return Response(depreciation_schedule_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                
+                MainForm.objects.filter(main_form_id=mainform_id).update(depreciation_form=depreciation_pk)
+            else:
+                return Response(depreciation_form_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(depreciation_form_serializer.data, status=status.HTTP_201_CREATED)
+    
+
     def get(self, request, mainform_id):
-        return Response(status=status.HTTP_200_OK)
+        try:
+            main_form = MainForm.objects.get(main_form_id = mainform_id)
+            depreciation_form = DepreciationForm.objects.get(depreciation_id=main_form.depreciation_form.depreciation_id)
+            depreciaiton_schedules = DepreciationSchedule.objects.filter(depreciation_form=depreciation_form.depreciation_id)
+        except Exception as exception:
+            return Response(str(exception), status=status.HTTP_404_NOT_FOUND)
+        
+        depreciation_form_serializer = DepreciationFormSerializer(depreciation_form)
+        depreciation_schedule_serializer = DepreciationScheduleSerializer(depreciaiton_schedules, many=True)
+        built_depreciation_form = build_depreciation_form_json(depreciation_form_serializer.data, depreciation_schedule_serializer.data)
+        return Response(built_depreciation_form, status=status.HTTP_200_OK)
 
 
 class TestRowFlattenEndpoint(APIView):

@@ -279,8 +279,15 @@ class ProFormaFounders(models.Model):
 
 class DepreciationForm(models.Model):
     depreciation_id = models.AutoField(primary_key=True)
-    total_items = models.IntegerField()
-    num_months_depreciation = models.IntegerField()
+    category = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+    start_month = models.IntegerField()
+    start_year = models.IntegerField()
+    value_at_time = models.IntegerField()
+    years_left = models.IntegerField()
+    salvage_value = models.IntegerField()
+    method = models.CharField(max_length=255)
+    off_sheet = models.IntegerField()
 
 
     created = models.DateTimeField(default=timezone.now)
@@ -295,36 +302,11 @@ class DepreciationForm(models.Model):
         db_table = "depreciation_form"
 
 
-class DepreciationItems(models.Model):
-    depreciation_item_id = models.AutoField(primary_key=True)
-    depreciation_form = models.ForeignKey(DepreciationForm, on_delete=models.CASCADE, blank=True, null=True)
-    category = models.CharField(max_length=255)
-    description = models.CharField(max_length=255)
-    start_month = models.IntegerField()
-    start_year = models.IntegerField()
-    value_at_time = models.IntegerField()
-    years_left = models.IntegerField()
-    salvage_value = models.IntegerField()
-    method = models.CharField(max_length=255)
-    off_sheet = models.BooleanField()
-
-    created = models.DateTimeField(default=timezone.now)
-    last_update = models.DateTimeField(default=timezone.now)
-
-    def save(self, *args, **kwargs):
-        self.last_update = timezone.now()
-        super(DepreciationItems, self).save(*args, **kwargs)
-
-    class Meta:
-        managed = True
-        db_table = "depreciation_items"
-
-
 class DepreciationSchedule(models.Model):
     depreciation_schedule_id = models.AutoField(primary_key=True)
-    depreciation_item = models.ForeignKey(DepreciationItems, on_delete=models.CASCADE, blank=True, null=True)
-    date = models.DateField()
-    amount = models.CharField(max_length=255)
+    depreciation_form = models.ForeignKey(DepreciationForm, on_delete=models.CASCADE, blank=True, null=True)
+    date = models.CharField(max_length=255)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
 
     created = models.DateTimeField(default=timezone.now)
     last_update = models.DateTimeField(default=timezone.now)

@@ -24,7 +24,7 @@ urlpatterns = [
     path('users/<int:id>', GetUserByIDView.as_view()),
 
     # Initial Creation of a Main Form
-    path('form/', CreateMainFormView.as_view()),
+    #path('form/', CreateMainFormView.as_view()),
 
     # POST: Create a new Main Form for user with id=id, GET: All Main Form's by a Users Id
     path('form/<int:id>', GetMainFormByUserView.as_view()),

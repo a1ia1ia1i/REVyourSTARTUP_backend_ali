@@ -52,11 +52,6 @@ class DepreciationFormSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class DepreciationItemsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DepreciationItems
-        fields = '__all__'
-
 
 class DepreciationScheduleSerializer(serializers.ModelSerializer):
     class Meta:
