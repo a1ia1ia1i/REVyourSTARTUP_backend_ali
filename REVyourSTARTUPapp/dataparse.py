@@ -416,7 +416,7 @@ def build_depreciation_form_json(depreciation_form_data, depreciation_schedules)
 
     for i in range(len(depreciation_schedules)):
         date = depreciation_schedules[i]["date"]
-        amount = str(depreciation_schedules[i]["amount"])
+        amount = float(depreciation_schedules[i]["amount"])
         depreciation_form_dict["depreciationSchedule"].append({"date": date, "amount": amount})
     
     return depreciation_form_dict

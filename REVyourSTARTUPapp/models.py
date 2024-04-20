@@ -15,6 +15,9 @@ class MainForm(models.Model):
     rev_form = models.ForeignKey('RevForm', on_delete=models.CASCADE, blank=True, null=True)
     pro_forma = models.ForeignKey('ProForma', on_delete=models.CASCADE, blank=True, null=True)
     depreciation_form = models.ForeignKey('DepreciationForm', on_delete=models.CASCADE, blank=True, null=True)
+    year1_form = models.ForeignKey("YearForm", on_delete=models.CASCADE, blank=True, null=True, related_name='year1')
+    year2_form = models.ForeignKey("YearForm", on_delete=models.CASCADE, blank=True, null=True, related_name='year2')
+    year3_form = models.ForeignKey("YearForm", on_delete=models.CASCADE, blank=True, null=True, related_name='year3')
 
     created = models.DateTimeField(default=timezone.now)
     last_update = models.DateTimeField(default=timezone.now)
@@ -364,6 +367,10 @@ class AdditionalRevenue(models.Model):
     additional_revenue_id = models.AutoField(primary_key=True)
     year_form = models.ForeignKey(YearForm, on_delete=models.CASCADE, blank=True, null=True)
 
+    # Condense String Lists
+    source_names = models.CharField(max_length=511)
+    sources = models.CharField(max_length=511)
+
     # Will be floats
     total_monthly = models.CharField(max_length=511)
 
@@ -377,42 +384,6 @@ class AdditionalRevenue(models.Model):
     class Meta:
         managed = True
         db_table = "additional_revenue"
-
-
-class SourceName(models.Model):
-    # Connected to AdditionalRevenue
-    source_name_id = models.AutoField(primary_key=True)
-    additional_revenue = models.ForeignKey(AdditionalRevenue, on_delete=models.CASCADE, blank=True, null=True)
-    name = models.CharField(max_length=255)
-
-    created = models.DateTimeField(default=timezone.now)
-    last_update = models.DateTimeField(default=timezone.now)
-
-    def save(self, *args, **kwargs):
-        self.last_update = timezone.now()
-        super(SourceName, self).save(*args, **kwargs)
-
-    class Meta:
-        managed = True
-        db_table = "source_name"
-
-
-class Source(models.Model):
-    # Connected to AdditionalRevenue
-    source_id = models.AutoField(primary_key=True)
-    additional_revenue = models.ForeignKey(AdditionalRevenue, on_delete=models.CASCADE, blank=True, null=True)
-    name = models.CharField(max_length=255)
-
-    created = models.DateTimeField(default=timezone.now)
-    last_update = models.DateTimeField(default=timezone.now)
-
-    def save(self, *args, **kwargs):
-        self.last_update = timezone.now()
-        super(Source, self).save(*args, **kwargs)
-
-    class Meta:
-        managed = True
-        db_table = "source"
 
 
 class BankingFees(models.Model):
@@ -477,7 +448,7 @@ class CustomerSegments(models.Model):
     status = models.CharField(max_length=255)
 
     # this will contain floats
-    total_monthly_data = models.CharField(max_length=511)
+    total_monthly_data = models.CharField(max_length=2047)
 
     created = models.DateTimeField(default=timezone.now)
     last_update = models.DateTimeField(default=timezone.now)
@@ -661,10 +632,12 @@ class SalariedWorkers(models.Model):
 class WorkersList(models.Model):
     # This is connected to FullTimeWorkers or PartTimeWorkers or SalariedWorkers
     workers_list_id = models.AutoField(primary_key=True)
-    full_time_workers = models.ForeignKey(FullTimeWorkers, on_delete=models.CASCADE, blank=True, null=True)
-    part_time_workers = models.ForeignKey(PartTimeWorkers, on_delete=models.CASCADE, blank=True, null=True)
-    salaried_workers = models.ForeignKey(SalariedWorkers, on_delete=models.CASCADE, blank=True, null=True)
+    year_form = models.ForeignKey(YearForm, on_delete=models.CASCADE, blank=True, null=True)
 
+    # This will be differentiated by tags associated with "workersList"
+    # The only valid possible tag_name's are
+    #(full_time_workers, part_time_workers, salaried_workers)
+    tag_name = models.CharField(max_length=255)
     description = models.CharField(max_length=255)
     monthly_salary = models.DecimalField(max_digits=12, decimal_places=2)
 

@@ -419,17 +419,382 @@ class YearFormView(APIView):
             error = "Error: <int:year_num> must be 1, 2, or 3"
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
+        # Get data by the main tag of the json
         year_form_data = request.data.get(main_tag)
-        total_monthly = year_form_data["additionalRevenue"]["totalMonthly"]
-        total_monthly_data_string = monthly_to_string(total_monthly)
+        if year_form_data is None:
+            error = 'Invalid request: Data is either mislabeled or missing entirely'
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            year_form_serializer = YearFormSerializer(data={"which_year": year_num})
+            if year_form_serializer.is_valid():
+                year_form_serializer.save()
+                year_form_pk = year_form_serializer.data['year_form_id']
+                if year_num == 1:
+                    MainForm.objects.filter(main_form_id=mainform_id).update(year1_form=year_form_pk)
+                elif year_num == 2:
+                    MainForm.objects.filter(main_form_id=mainform_id).update(year2_form=year_form_pk)
+                elif year_num == 3:
+                    MainForm.objects.filter(main_form_id=mainform_id).update(year3_form=year_form_pk)
+            else:
+                return Response(year_form_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Assemble all the relevant tags from the year_form_data according to the model design
 
-        year_form_data["totalMonthlyString"] = total_monthly_data_string
+        # Process each _data tag and flatten for serialization
+        additional_revenue = flatten_additional_revenue_data(year_form_data["additionalRevenue"])
+        banking_fees = flatten_banking_fees_data(year_form_data["bankingFees"])
+        cash_on_hand = flatten_cash_on_hand_data(year_form_data["cashOnHand"])
+        customer_segments = flatten_customer_segments_data(year_form_data["customerSegments"])
+        distributions = flatten_distributions_data(year_form_data["distributions"])
+        fixed_assets = flatten_fixed_assets_data(year_form_data["fixedAssets"])
+        founders_draw = flatten_founders_draw_data(year_form_data["foundersDraw"])
+        full_time_workers = flatten_full_time_workers_data(year_form_data["fullTimeWorkers"])
+        funding_investment = flatten_funding_investment_data(year_form_data["fundingInvestment"])
+        legal_and_professional_services = flatten_legal_and_profesisonal_services_data(year_form_data["legalAndProfessionalServices"])
+        marketing_expenses = flatten_marketing_expenses_data(year_form_data["marketingExpenses"])
+        office_general_business = flatten_office_general_business_data(year_form_data["officeGeneralBusiness"])
+        other_expenses = flatten_other_expenses_data(year_form_data["otherExpenses"])
+        part_time_workers = flatten_part_time_workers_data(year_form_data["partTimeWorkers"])
+        pay_roll_taxes_and_benefits = flatten_pay_roll_taxes_and_benefits_data(year_form_data["payRollTaxesAndBenefits"])
+        # ProductionRelated is Foreign Key'd by another sub-table
+        production_related = flatten_production_related_data(year_form_data["productionRelated"])
+        property_related = flatten_property_related_data(year_form_data["propertyRelated"])
+        # Return Reworks does not have its own model
+        return_reworks = flatten_return_reworks_data(year_form_data["returnReworks"])
+        salaried_workers = flatten_salaried_workers_data(year_form_data["salariedWorkers"])
+        travel_vehicle_related = flatten_travel_vehicle_related_data(year_form_data["travelVehicleRelated"])
+        workers_head_count = flatten_workers_head_count_data(year_form_data["workersHeadCount"])
 
-        total_monthly_number_list = string_to_monthly(total_monthly_data_string, True)
+        # Serialize each tag and insert into database (Doing this in reverse order for the sake of testing)
 
-        year_form_data["totalMonthlyNumberList"] = total_monthly_number_list
+        # Workers Head Count
+        workers_head_count_serializer = WorkersHeadCountSerializer(data=workers_head_count)
+        if workers_head_count_serializer.is_valid():
+            workers_head_count_serializer.save()
+            workers_head_count_pk = workers_head_count_serializer.data['workers_head_count_id']
+            WorkersHeadCount.objects.filter(workers_head_count_id=workers_head_count_pk).update(year_form=year_form_pk)
+        else:
+            return Response(workers_head_count_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(year_form_data, status=status.HTTP_200_OK)
+        # Travel Vehicle Related
+        expenses_list = travel_vehicle_related.pop('expenses_list')
+        travel_vehicle_related_serializer = TravelVehicleRelatedSerializer(data=travel_vehicle_related)
+        if travel_vehicle_related_serializer.is_valid():
+            travel_vehicle_related_serializer.save()
+            travel_vehicle_related_pk = travel_vehicle_related_serializer.data['travel_vehicle_related_id']
+            TravelVehicleRelated.objects.filter(travel_vehicle_related_id=travel_vehicle_related_pk).update(year_form=year_form_pk)
+            for i in range(len(expenses_list)):
+                expenses_list_serializer = ExpensesListSerializer(data=expenses_list[i])
+                if expenses_list_serializer.is_valid():
+                    expenses_list_serializer.save()
+                    expenses_list_pk = expenses_list_serializer.data['expenses_list_id']
+                    ExpensesList.objects.filter(expenses_list_id=expenses_list_pk).update(year_form=year_form_pk)
+                else:
+                    return Response(expenses_list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            name = "travel_vehicle_related"
+            errors = travel_vehicle_related_serializer.errors
+            return Response({"Serializer": name, "error": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Salaried Workers
+        workers_list = salaried_workers.pop('workers_list')
+        salaried_workers_serializer = SalariedWorkersSerializer(data=salaried_workers)
+        if salaried_workers_serializer.is_valid():
+            salaried_workers_serializer.save()
+            salaried_workers_pk = salaried_workers_serializer.data['salaried_workers_id']
+            SalariedWorkers.objects.filter(salaried_workers_id=salaried_workers_pk).update(year_form=year_form_pk)
+            for i in range(len(workers_list)):
+                workers_list_serializer = WorkersListSerializer(data=workers_list[i])
+                if workers_list_serializer.is_valid():
+                    workers_list_serializer.save()
+                    workers_list_pk = workers_list_serializer.data['workers_list_id']
+                    WorkersList.objects.filter(workers_list_id=workers_list_pk).update(year_form=year_form_pk)
+                else:
+                    return Response(workers_list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            name = "salaried_workers"
+            errors = salaried_workers_serializer.errors
+            return Response({"Serializer": name, "error": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Return Reworks
+        for i in range(len(return_reworks)):
+            expenses_list_serializer = ExpensesListSerializer(data=return_reworks[i])
+            if expenses_list_serializer.is_valid():
+                expenses_list_serializer.save()
+                expenses_list_pk = expenses_list_serializer.data['expenses_list_id']
+                ExpensesList.objects.filter(expenses_list_id=expenses_list_pk).update(year_form=year_form_pk)
+            else:
+                name = "return_reworks"
+                errors = expenses_list_serializer.errors
+                return Response({"Serializer": name, "error": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Property Related
+        expenses_list = property_related.pop('expenses_list')
+        property_related_serializer = PropertyRelatedSerializer(data=property_related)
+        if property_related_serializer.is_valid():
+            property_related_serializer.save()
+            property_related_pk = property_related_serializer.data['property_related_id']
+            PropertyRelated.objects.filter(property_related_id=property_related_pk).update(year_form=year_form_pk)
+            for i in range(len(expenses_list)):
+                expenses_list_serializer = ExpensesListSerializer(data=expenses_list[i])
+                if expenses_list_serializer.is_valid():
+                    expenses_list_serializer.save()
+                    expenses_list_pk = expenses_list_serializer.data['expenses_list_id']
+                    ExpensesList.objects.filter(expenses_list_id=expenses_list_pk).update(year_form=year_form_pk)
+                else:
+                    return Response(expenses_list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            name = "property_related"
+            errors = property_related_serializer.errors
+            return Response({"Serializer": name, "error": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Production Related
+        for i in range(len(production_related)):
+            production_expense_list = production_related[i].pop('expenses_list')
+            production_related_serializer = ProductionRelatedSerializer(data=production_related[i])
+            if production_related_serializer.is_valid():
+                production_related_serializer.save()
+                production_related_pk = production_related_serializer.data['production_related_id']
+                ProductionRelated.objects.filter(production_related_id=production_related_pk).update(year_form=year_form_pk)
+                for j in range(len(production_expense_list)):
+                    production_related_expense_serializer = ProductionRelatedExpenseSerializer(data=production_expense_list[j])
+                    if production_related_expense_serializer.is_valid():
+                        production_related_expense_serializer.save()
+                        production_related_expense_pk = production_related_expense_serializer.data['production_related_expense_id']
+                        ProductionRelatedExpense.objects.filter(production_related_expense_id=production_related_expense_pk).update(production_related=production_related_pk)
+                    else:
+                        return Response(production_related_expense_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                name = "production_related"
+                errors = production_related_serializer.errors
+                return Response({"Serializer": name, "error": errors}, status=status.HTTP_400_BAD_REQUEST)    
+
+
+        # Pay Roll Taxes And Benefits
+        pay_roll_list = pay_roll_taxes_and_benefits.pop('pay_roll_list')
+        pay_roll_taxes_and_benefits_serializer = PayRollTaxesAndBenefitsSerializer(data=pay_roll_taxes_and_benefits)
+        if pay_roll_taxes_and_benefits_serializer.is_valid():
+            pay_roll_taxes_and_benefits_serializer.save()
+            pay_roll_taxes_and_benefits_pk = pay_roll_taxes_and_benefits_serializer.data['pay_roll_tax_and_benefits_id']
+            PayRollTaxesAndBenefits.objects.filter(pay_roll_tax_and_benefits_id=pay_roll_taxes_and_benefits_pk).update(year_form=year_form_pk)
+            for i in range(len(pay_roll_list)):
+                pay_roll_list_serializer = PayRollListSerializer(data=pay_roll_list[i])
+                if pay_roll_list_serializer.is_valid():
+                    pay_roll_list_serializer.save()
+                    pay_roll_list_pk = pay_roll_list_serializer.data['pay_roll_list_id']
+                    PayRollList.objects.filter(pay_roll_list_id=pay_roll_list_pk).update(pay_roll_taxes_and_benefits=pay_roll_taxes_and_benefits_pk)
+                else:
+                    return Response(pay_roll_list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(pay_roll_taxes_and_benefits_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Part Time Workers
+        workers_list = part_time_workers.pop('workers_list')
+        part_time_workers_serializer = PartTimeWorkersSerializer(data=part_time_workers)
+        if part_time_workers_serializer.is_valid():
+            part_time_workers_serializer.save()
+            part_time_workers_pk = part_time_workers_serializer.data['part_time_workers_id']
+            PartTimeWorkers.objects.filter(part_time_workers_id=part_time_workers_pk).update(year_form=year_form_pk)
+            for i in range(len(workers_list)):
+                workers_list_serializer = WorkersListSerializer(data=workers_list[i])
+                if workers_list_serializer.is_valid():
+                    workers_list_serializer.save()
+                    workers_list_pk = workers_list_serializer.data['workers_list_id']
+                    WorkersList.objects.filter(workers_list_id=workers_list_pk).update(year_form=year_form_pk)
+                else:
+                    return Response(workers_list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(part_time_workers_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Other Expenses
+        expenses_list = other_expenses.pop('expenses_list')
+        other_expenses_serializer = OtherExpensesSerializer(data=other_expenses)
+        if other_expenses_serializer.is_valid():
+            other_expenses_serializer.save()
+            other_expenses_pk = other_expenses_serializer.data['other_expenses_id']
+            OtherExpenses.objects.filter(other_expenses_id=other_expenses_pk).update(year_form=year_form_pk)
+            for i in range(len(expenses_list)):
+                expenses_list_serializer = ExpensesListSerializer(data=expenses_list[i])
+                if expenses_list_serializer.is_valid():
+                    expenses_list_serializer.save()
+                    expenses_list_pk = expenses_list_serializer.data['expenses_list_id']
+                    ExpensesList.objects.filter(expenses_list_id=expenses_list_pk).update(year_form=year_form_pk)
+                else:
+                    return Response(expenses_list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(other_expenses_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Office General Business
+        expenses_list = office_general_business.pop('expenses_list')
+        office_general_business_serializer = OfficeGeneralBusinessSerializer(data=office_general_business)
+        if office_general_business_serializer.is_valid():
+            office_general_business_serializer.save()
+            office_general_business_pk = office_general_business_serializer.data['office_general_business_id']
+            OfficeGeneralBusiness.objects.filter(office_general_business_id=office_general_business_pk).update(year_form=year_form_pk)
+            for i in range(len(expenses_list)):
+                expenses_list_serializer = ExpensesListSerializer(data=expenses_list[i])
+                if expenses_list_serializer.is_valid():
+                    expenses_list_serializer.save()
+                    expenses_list_pk = expenses_list_serializer.data['expenses_list_id']
+                    ExpensesList.objects.filter(expenses_list_id=expenses_list_pk).update(year_form=year_form_pk)
+                else:
+                    return Response(expenses_list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(office_general_business_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Marketing Expenses
+        expenses_list = marketing_expenses.pop('expenses_list')
+        marketing_expenses_serializer = MarketingExpensesSerializer(data=marketing_expenses)
+        if marketing_expenses_serializer.is_valid():
+            marketing_expenses_serializer.save()
+            marketing_expenses_pk = marketing_expenses_serializer.data['marketing_expenses_id']
+            MarketingExpenses.objects.filter(marketing_expenses_id=marketing_expenses_pk).update(year_form=year_form_pk)
+            for i in range(len(expenses_list)):
+                expenses_list_serializer = ExpensesListSerializer(data=expenses_list[i])
+                if expenses_list_serializer.is_valid():
+                    expenses_list_serializer.save()
+                    expenses_list_pk = expenses_list_serializer.data['expenses_list_id']
+                    ExpensesList.objects.filter(expenses_list_id=expenses_list_pk).update(year_form=year_form_pk)
+                else:
+                    return Response(expenses_list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(marketing_expenses_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Legal And Professional Services
+        expenses_list = legal_and_professional_services.pop('expenses_list')
+        legal_and_professional_services_serializer = LegalAndProfessionalServicesSerializer(data=legal_and_professional_services)
+        if legal_and_professional_services_serializer.is_valid():
+            legal_and_professional_services_serializer.save()
+            legal_and_professional_services_pk = legal_and_professional_services_serializer.data['legal_and_professional_services_id']
+            LegalAndProfessionalServices.objects.filter(legal_and_professional_services_id=legal_and_professional_services_pk).update(year_form=year_form_pk)
+            for i in range(len(expenses_list)):
+                expenses_list_serializer = ExpensesListSerializer(data=expenses_list[i])
+                if expenses_list_serializer.is_valid():
+                    expenses_list_serializer.save()
+                    expenses_list_pk = expenses_list_serializer.data['expenses_list_id']
+                    ExpensesList.objects.filter(expenses_list_id=expenses_list_pk).update(year_form=year_form_pk)
+                else:
+                    return Response(expenses_list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(legal_and_professional_services_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Funding Investment
+        funding_investment_serializer = FundingInvestmentSerializer(data=funding_investment)
+        if funding_investment_serializer.is_valid():
+            funding_investment_serializer.save()
+            funding_investment_pk = funding_investment_serializer.data['funding_investment_id']
+            FundingInvestment.objects.filter(funding_investment_id=funding_investment_pk).update(year_form=year_form_pk)
+        else:
+            return Response(funding_investment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Full Time Workers
+        workers_list = full_time_workers.pop('workers_list')
+        full_time_workers_serializer = FullTimeWorkersSerializer(data=full_time_workers)
+        if full_time_workers_serializer.is_valid():
+            full_time_workers_serializer.save()
+            full_time_workers_pk = full_time_workers_serializer.data['full_time_workers_id']
+            FullTimeWorkers.objects.filter(full_time_workers_id=full_time_workers_pk).update(year_form=year_form_pk)
+            for i in range(len(workers_list)):
+                workers_list_serializer = WorkersListSerializer(data=workers_list[i])
+                if workers_list_serializer.is_valid():
+                    workers_list_serializer.save()
+                    workers_list_pk = workers_list_serializer.data['workers_list_id']
+                    WorkersList.objects.filter(workers_list_id=workers_list_pk).update(year_form=year_form_pk)
+                else:
+                    return Response(workers_list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(full_time_workers_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Founders Draw
+        fd_pay_array = founders_draw.pop('founders_draw_pay_array')
+        founders_draw_serializer = FoundersDrawSerializer(data=founders_draw)
+        if founders_draw_serializer.is_valid():
+            founders_draw_serializer.save()
+            founders_draw_pk = founders_draw_serializer.data['founders_draw_id']
+            FoundersDraw.objects.filter(founders_draw_id=founders_draw_pk).update(year_form=year_form_pk)
+            for i in range(len(fd_pay_array)):
+                founders_draw_pay_serializer = FoundersDrawPaySerializer(data={'pay_array': fd_pay_array[i]})
+                if founders_draw_pay_serializer.is_valid():
+                    founders_draw_pay_serializer.save()
+                    founders_draw_pay_pk = founders_draw_pay_serializer.data['founders_draw_pay_id']
+                    FoundersDrawPay.objects.filter(founders_draw_pay_id=founders_draw_pay_pk).update(founders_draw=founders_draw_pk)
+                else:
+                    return Response(founders_draw_pay_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(founders_draw_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Fixed Assets
+        fixed_assets_serializer = FixedAssetsSerializer(data=fixed_assets)
+        if fixed_assets_serializer.is_valid():
+            fixed_assets_serializer.save()
+            fixed_assets_pk = fixed_assets_serializer.data['fixed_assets_id']
+            FixedAssets.objects.filter(fixed_assets_id=fixed_assets_pk).update(year_form=year_form_pk)
+        else:
+            return Response(fixed_assets_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Distributions
+        distributions_serializer = DistributionsSerializer(data=distributions)
+        if distributions_serializer.is_valid():
+            distributions_serializer.save()
+            distributions_pk = distributions_serializer.data['distributions_id']
+            Distributions.objects.filter(distributions_id=distributions_pk).update(year_form=year_form_pk)
+        else:
+            return Response(distributions_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Customer Segments
+        for i in range(len(customer_segments)):
+            monthly_data = customer_segments[i].pop('monthly_data')
+            customer_segments_serializer = CustomerSegmentsSerializer(data=customer_segments[i])
+            if customer_segments_serializer.is_valid():
+                customer_segments_serializer.save()
+                customer_segments_pk = customer_segments_serializer.data['customer_segment_id']
+                CustomerSegments.objects.filter(customer_segment_id=customer_segments_pk).update(year_form=year_form_pk)
+
+                for j in range(len(monthly_data)):
+                    monthly_data_serializer = MonthlyDataSerializer(data=monthly_data[j])
+                    if monthly_data_serializer.is_valid():
+                        monthly_data_serializer.save()
+                        monthly_data_pk = monthly_data_serializer.data['monthly_data_id']
+                        MonthlyData.objects.filter(monthly_data_id=monthly_data_pk).update(customer_segment=customer_segments_pk)
+                    else:
+                        return Response(monthly_data_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Cash On Hand
+        cash_on_hand_serializer = CashOnHandSerializer(data=cash_on_hand)
+        if cash_on_hand_serializer.is_valid():
+            cash_on_hand_serializer.save()
+            cash_on_hand_pk = cash_on_hand_serializer.data['cash_on_hand_id']
+            CashOnHand.objects.filter(cash_on_hand_id=cash_on_hand_pk).update(year_form=year_form_pk)
+        else:
+            return Response(cash_on_hand_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Banking Fees
+        banking_fees_serializer = BankingFeesSerializer(data={"total_monthly": banking_fees['total_monthly']})
+        if banking_fees_serializer.is_valid():
+            banking_fees_serializer.save()
+            banking_fees_pk = banking_fees_serializer.data['banking_fees_id']
+            BankingFees.objects.filter(banking_fees_id=banking_fees_pk).update(year_form=year_form_pk)
+            for i in range(len(banking_fees['expenses_list'])):
+                expenses_list_serializer = ExpensesListSerializer(data=banking_fees['expenses_list'][i])
+                if expenses_list_serializer.is_valid():
+                    expenses_list_serializer.save()
+                    expenses_list_pk = expenses_list_serializer.data['expenses_list_id']
+                    ExpensesList.objects.filter(expenses_list_id=expenses_list_pk).update(year_form=year_form_pk)
+                else:
+                    return Response(expenses_list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(banking_fees_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Additional Revenue
+        additional_revenue_serializer = AdditionalRevenueSerializer(data=additional_revenue)
+        if additional_revenue_serializer.is_valid():
+            additional_revenue_serializer.save()
+            additional_revenue_pk = additional_revenue_serializer.data['additional_revenue_id']
+            AdditionalRevenue.objects.filter(additional_revenue_id=additional_revenue_pk).update(year_form=year_form_pk)
+        else:
+            return Response(additional_revenue_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({"Status": "HTTP 201: Created"}, status=status.HTTP_201_CREATED)
 
 
     def get(self, request, mainform_id, year_num):
