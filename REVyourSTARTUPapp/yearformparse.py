@@ -348,4 +348,317 @@ def flatten_workers_head_count_data(workers_head_count_data):
     return out_data
 
 
+# Build
+def build_expenses_list(expenses_list):
+    # Returns a list
+    out_list = []
+    for i in range(len(expenses_list)):
+        expense = {
+            "sourceName": expenses_list[i]['source_name'],
+            "monthlyData": string_to_monthly(expenses_list[i]['monthly_data'])
+        }
+        out_list.append(expense)
 
+    return out_list
+
+
+def build_workers_list(workers_list):
+    # Returns a list
+    out_list = []
+    for i in range(len(workers_list)):
+        worker = {
+            "description": workers_list[i]['description'],
+            "monthlySalary": float(workers_list[i]['monthly_salary']),
+            "monthlyData": string_to_monthly(workers_list[i]['monthly_data'])
+        }
+        out_list.append(worker)
+    
+    return out_list
+
+
+def build_additional_revenue_json(additional_revenue_data):
+    out_data = {
+        "additionalRevenue": {
+            "sourceNames": build_string_list(additional_revenue_data['source_names']),
+            "sources": build_string_list(additional_revenue_data['sources']),
+            "totalMonthly": string_to_monthly(additional_revenue_data['total_monthly'])
+        }
+    }
+
+    return out_data
+
+
+def build_banking_fees_json(banking_fees_data, expenses_list):
+    out_data = {
+        "bankingFees": {
+            "expensesList": build_expenses_list(expenses_list),
+            "totalMonthly": string_to_monthly(banking_fees_data['total_monthly'])
+        }
+    }
+
+    return out_data
+
+
+def build_cash_on_hand_json(cash_on_hand_data):
+    out_data = {
+        "cashOnHand": {
+            "excludeDepreciation": cash_on_hand_data['exclude_depreciation'],
+            "initialCashOnHand": float(cash_on_hand_data['initial_cash_on_hand']),
+            "withDepreciation": string_to_monthly(cash_on_hand_data['with_depreciation']),
+            "withoutDepreciation": string_to_monthly(cash_on_hand_data['without_depreciation'])
+        }
+    }
+
+    return out_data
+
+
+def build_customer_segments_json(segments_data):
+    out_list = []
+    out_data = {"customerSegments": out_list}
+
+    for i in range(len(segments_data)):
+        segment_dict = {
+            "inputData": {
+                "commission": float(segments_data[i]['segment']['commission']),
+                "deliveredIn": segments_data[i]['segment']['delivered_in'],
+                "deposit": float(segments_data[i]['segment']['deposit']),
+                "extraMonths": segments_data[i]['segment']['extra_months'],
+                "fixedFees": float(segments_data[i]['segment']['fixed_fees']),
+            },
+            "monthlyData": [],
+            "name": segments_data[i]['segment']['name'],
+            "numberToSell": segments_data[i]['segment']['number_to_sell'],
+            "numbersToSellOriginal": segments_data[i]['segment']['numbers_to_sell_original'],
+            "price": float(segments_data[i]['segment']['price']),
+            "status": segments_data[i]['segment']['status'],
+            "totalMonthlyData": []
+        }
+        total_monthly_data = string_to_monthly(segments_data[i]['segment']['total_monthly_data'])
+        for j in range(len(total_monthly_data)):
+            segment_dict["totalMonthlyData"].append({"amount": total_monthly_data[j]})
+
+        for k in range(len(segments_data[i]['monthly_data'])):
+            month = {
+                "numbersSold": segments_data[i]['monthly_data'][k]['numbers_sold'],
+                "deposit": float(segments_data[i]['monthly_data'][k]['deposit']),
+                "original": float(segments_data[i]['monthly_data'][k]['original']),
+                "extraFromPreviousMonths": float(segments_data[i]['monthly_data'][k]['extra_from_previous_months']),
+                "commission": float(segments_data[i]['monthly_data'][k]['commission'])
+            }
+            segment_dict["monthlyData"].append(month)
+        out_list.append(segment_dict)
+    
+    return out_data
+
+
+def build_distributions_json(distributions_data):
+    out_data = {
+        "distributions": {
+            "includeInvestments": distributions_data['include_investments'],
+            "percentOfIncomeDistributed": float(distributions_data['percent_of_income_distributed']),
+            "withInvestments": string_to_monthly(distributions_data['with_investments']),
+            "withoutInvestments": string_to_monthly(distributions_data['without_investments'])
+        }
+    }
+
+    return out_data
+
+
+def build_fixed_assets_json(fixed_assets_data):
+    out_data = {
+        "fixedAssets": {
+            "newAcquisitions": string_to_monthly(fixed_assets_data['new_acquisitions']),
+            "depreciation": string_to_monthly(fixed_assets_data['depreciation']),
+            "totalMonthly": string_to_monthly(fixed_assets_data['total_monthly'])
+        }
+    }
+
+    return out_data
+
+
+def build_founders_draw_json(founders_draw_data, founders_draw_pay_data):
+    pay_list = []
+    for i in range(len(founders_draw_pay_data)):
+        pay_list.append(string_to_monthly(founders_draw_pay_data[i]['pay_array']))
+
+    out_data = {
+        "foundersDraw": {
+            "numberOfFounders": founders_draw_data['number_of_founders'],
+            "foundersShare": float(founders_draw_data['founders_share']),
+            "foundersDrawPayArray": pay_list,
+            "totalMonthly": string_to_monthly(founders_draw_data['total_monthly'])
+        }
+    }
+
+    return out_data
+
+
+def build_full_time_workers_json(full_time_workers_data, workers_list):
+    out_data = {
+        "fullTimeWorkers": {
+            "workersList": build_workers_list(workers_list),
+            "totalMonthly": string_to_monthly(full_time_workers_data['total_monthly'])
+        }
+    }
+
+    return out_data
+
+
+def build_funding_investment_json(funding_investment_data):
+    out_data = {
+        "fundingInvestment": {
+            "sourceNames": build_string_list(funding_investment_data['source_names']),
+            "sources": string_to_monthly(funding_investment_data['sources']),
+            "totalMonthly": string_to_monthly(funding_investment_data['total_monthly'])
+        }
+    }
+
+    return out_data
+
+
+def build_legal_and_professional_services_json(legal_and_professional_services_data, expenses_list):
+    out_data = {
+        "legalAndProfessionalServices": {
+            "expensesList": build_expenses_list(expenses_list),
+            "totalMonthly": string_to_monthly(legal_and_professional_services_data['total_monthly'])
+        }
+    }
+
+    return out_data
+
+
+def build_marketing_expenses_json(marketing_expenses_data, expenses_list):
+    out_data = {
+        "marketingExpenses": {
+            "expensesList": build_expenses_list(expenses_list),
+            "totalMonthly": string_to_monthly(marketing_expenses_data['total_monthly'])
+        }
+    }
+
+    return out_data
+
+
+def build_office_general_business_json(office_general_business_data, expenses_list):
+    out_data = {
+        "officeGeneralBusiness": {
+            "expensesList": build_expenses_list(expenses_list),
+            "totalMonthly": string_to_monthly(office_general_business_data['total_monthly'])
+        }
+    }
+
+    return out_data
+
+
+def build_other_expenses_json(other_expenses_data, expenses_list):
+    out_data = {
+        "otherExpenses": {
+            "expensesList": build_expenses_list(expenses_list),
+            "totalMonthly": string_to_monthly(other_expenses_data['total_monthly'])
+        }
+    }
+
+    return out_data
+
+
+def build_part_time_workers_json(part_time_workers_data, workers_list):
+    out_data = {
+        "partTimeWorkers": {
+            "workersList": build_workers_list(workers_list),
+            "totalMonthly": string_to_monthly(part_time_workers_data['total_monthly'])
+        }
+    }
+
+    return out_data
+
+
+def build_pay_roll_taxes_and_benefits_json(pay_roll_taxes_and_benefits_data, pay_roll_list):
+    pay_list = []
+    for i in range(len(pay_roll_list)):
+        data = {
+            "sourceName": pay_roll_list[i]['source_name'],
+            "value": float(pay_roll_list[i]['value']),
+            "monthlyData": string_to_monthly(pay_roll_list[i]['monthly_data'])
+        }
+        pay_list.append(data)
+
+    out_data = {
+        "payRollTaxesAndBenefits": {
+            "payrollList": pay_list,
+            "totalMonthly": string_to_monthly(pay_roll_taxes_and_benefits_data['total_monthly'])
+        }
+    }
+
+    return out_data
+
+
+def build_production_related_json(production_related_data_entries):
+    out_list = []
+    out_data = {
+        "productionRelated": out_list
+    }
+    
+    for i in range(len(production_related_data_entries)):
+        data = {
+            "name": production_related_data_entries[i]['production_related']['name'],
+            "expensesList": build_expenses_list(production_related_data_entries[i]['expenses_list']),
+            "totalMonthly": string_to_monthly(production_related_data_entries[i]['production_related']['total_monthly'])
+        }
+        out_list.append(data)
+
+    return out_data
+
+
+def build_property_related_json(property_related_data, expenses_list):
+    out_data = {
+        "propertyRelated": {
+            "expensesList": build_expenses_list(expenses_list),
+            "totalMonthly": string_to_monthly(property_related_data['total_monthly'])
+        }
+    }
+
+    return out_data
+
+
+def build_return_reworks_json(expenses_list):
+    expenses_list = build_expenses_list(expenses_list)
+    out_data = {
+        "returnReworks": expenses_list
+    }
+
+    return out_data
+
+
+def build_salaried_workers_json(salaried_workers_data, workers_list):
+    out_data = {
+        "salariedWorkers": {
+            "workersList": build_workers_list(workers_list),
+            "totalMonthly": string_to_monthly(salaried_workers_data['total_monthly'])
+        }
+    }
+
+    return out_data
+
+
+def build_travel_vehicle_related_json(travel_vehicle_related_data, expenses_list):
+    out_data = {
+        "travelVehicleRelated": {
+            "expensesList": build_expenses_list(expenses_list),
+            "totalMonthly": string_to_monthly(travel_vehicle_related_data['total_monthly'])
+        }
+    }
+
+    return out_data
+
+
+def build_workers_head_count_json(workers_head_count_data):
+    out_data = {
+        "workersHeadCount": {
+            "foundersHeadCount": string_to_monthly(workers_head_count_data['founders_head_count'], True),
+            "salariedHeadCount": string_to_monthly(workers_head_count_data['salaried_head_count'], True),
+            "fullTimeHeadCount": string_to_monthly(workers_head_count_data['full_time_head_count'], True),
+            "partTimeHeadCount": string_to_monthly(workers_head_count_data['part_time_head_count'], True),
+            "totalMonthly": string_to_monthly(workers_head_count_data['total_monthly'], True)
+        }
+    }
+
+    return out_data
