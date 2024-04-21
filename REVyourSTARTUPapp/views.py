@@ -283,15 +283,15 @@ class RevFormView(APIView):
         try:
             year1_rows = RevFormRows.objects.filter(revform_rows_index=customer_segments_year1["revform_rows_index_id"])
             year1_rows_serializer = RevFormRowsSerializer(year1_rows, many=True)
-            year1_customer_segment_json = build_customer_segments_json(customer_segments_year1, year1_rows_serializer.data)
-
+            year1_customer_segment_json = build_rev_customer_segments_json(customer_segments_year1, year1_rows_serializer.data)
+            
             year2_rows = RevFormRows.objects.filter(revform_rows_index=customer_segments_year2["revform_rows_index_id"])
             year2_rows_serializer = RevFormRowsSerializer(year2_rows, many=True)
-            year2_customer_segment_json = build_customer_segments_json(customer_segments_year2, year2_rows_serializer.data)
+            year2_customer_segment_json = build_rev_customer_segments_json(customer_segments_year2, year2_rows_serializer.data)
             
             year3_rows = RevFormRows.objects.filter(revform_rows_index=customer_segments_year3["revform_rows_index_id"])        
             year3_rows_serializer = RevFormRowsSerializer(year3_rows, many=True)
-            year3_customer_segment_json = build_customer_segments_json(customer_segments_year3, year3_rows_serializer.data)
+            year3_customer_segment_json = build_rev_customer_segments_json(customer_segments_year3, year3_rows_serializer.data)
         except Exception as exception:
             return Response(str(exception), status=status.HTTP_404_NOT_FOUND)
 

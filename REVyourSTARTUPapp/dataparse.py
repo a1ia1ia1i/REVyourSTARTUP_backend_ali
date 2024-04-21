@@ -129,7 +129,7 @@ def build_revform_json(revform, year1, year2, year3):
     return {"valuationParameters": valuation_parameters, "realityCheck1": reality_check, "customerSegmentsYear3": year3, "customerSegmentsYear2": year2, "customerSegmentsYear1": year1}
 
 
-def build_customer_segments_json(revform_index_data, revform_row_data):
+def build_rev_customer_segments_json(revform_index_data, revform_row_data):
     rows = []
     for i in range(len(revform_row_data)):
         rows.append(
@@ -139,7 +139,7 @@ def build_customer_segments_json(revform_index_data, revform_row_data):
                 "quickModelingPercentage": revform_row_data[i]["quick_modeling_percentage"],
                 "revenue": float(revform_row_data[i]["revenue"]),
                 "customers": revform_row_data[i]["customers"],
-                "yourPercentage": revform_row_data[i]["your_percentage"],
+                "yourPercentage": float(revform_row_data[i]["your_percentage"]),
                 "totalRevenue": float(revform_row_data[i]["total_revenue"])
             }
         )
