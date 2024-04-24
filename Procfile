@@ -1,1 +1,1 @@
-web: gunicorn REVyourSTARTUP_backend.wsgi clear--log-file -
+web: gunicorn REVyourSTARTUP.wsgi clear--log-file -
