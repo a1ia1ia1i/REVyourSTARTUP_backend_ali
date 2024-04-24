@@ -16,6 +16,7 @@ import os, sys
 from corsheaders.defaults import default_headers
 import dj_database_url
 from django.conf import settings
+import whitenoise
 
 # Initialize Environment Variables
 env = environ.Env()
