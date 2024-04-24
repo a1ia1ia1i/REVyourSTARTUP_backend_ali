@@ -87,7 +87,7 @@ WSGI_APPLICATION = 'REVyourSTARTUP.wsgi.application'
 
 # Database configuration
 DATABASES = {
-    'default': dj_database_url.config(conn_max_age=600)
+    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
 }
 
 # Static files (CSS, JavaScript, Images)
