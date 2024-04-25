@@ -33,3 +33,4 @@ These are the steps to follow to properly initialize this project:
      DATABASE_PASS=YOUR PASSWORD GOES HERE!!!!
      ```
    - Replace DATABASE_PASS with the one you have created on your system for your local MySQL server
+   - Initialize the models for the database by running `py manage.py makemigrations` followed by `py manage.py migrate`

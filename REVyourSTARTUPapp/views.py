@@ -57,7 +57,8 @@ class UserLoginView(APIView):
             # Backend authenticated credentials
             if user.is_active:
                 login(request, user)
-                return Response(status=status.HTTP_202_ACCEPTED)
+                
+                return Response({"userID": user.id}, status=status.HTTP_202_ACCEPTED)
             else:
                 message = "User is inactive"
                 return Response(message, status=status.HTTP_401_UNAUTHORIZED)
