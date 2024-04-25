@@ -33,9 +33,9 @@ def condense_string_list(string_list):
 
     for i in range(len(string_list)):
         if i == len(string_list) - 1:
-            out_string += string_list[i]
+            out_string += str(string_list[i])
             break
-        out_string += string_list[i] + "~"
+        out_string += str(string_list[i]) + "~"
 
     return out_string
 
