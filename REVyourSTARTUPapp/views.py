@@ -378,7 +378,7 @@ class DepreciationView(APIView):
                 depreciation_form_serializer.save()
                 depreciation_pk = depreciation_form_serializer.data['depreciation_id']
                 for i in range(len(depreciation_schedule)):
-                    schedule_entry = {"date": str(depreciation_schedule[i]["date"]), "amount": float(depreciation_schedule[i]["amount"])}
+                    schedule_entry = {"date": depreciation_schedule[i]["date"], "amount": float(depreciation_schedule[i]["amount"])}
                     depreciation_schedule_serializer = DepreciationScheduleSerializer(data=schedule_entry)
                     if depreciation_schedule_serializer.is_valid():
                         depreciation_schedule_serializer.save()
