@@ -3,7 +3,7 @@ from .views import *
 
 urlpatterns = [
     # Health Check Endpoint
-    path('home/', HealthCheckAPIView.as_view()),
+    path('', HealthCheckAPIView.as_view(), name='health-check-api-home'),
 
     # Make superuser for existing account
     path('superuser/', MakeSuperUserView.as_view()),
