@@ -388,11 +388,11 @@ def flatten_depreciation_form_json(depreciation_data):
     depreciation_form_dict = {
         "category": depreciation_data["category"],
         "description": depreciation_data["description"],
-        "start_month": depreciation_data["startMonth"],
-        "start_year": depreciation_data["startYear"],
-        "value_at_time": depreciation_data["valueAtTime"],
-        "years_left": depreciation_data["yearsLeft"],
-        "salvage_value": depreciation_data["salvageValue"],
+        "start_month": int(depreciation_data["startMonth"]),
+        "start_year": int(depreciation_data["startYear"]),
+        "value_at_time": int(depreciation_data["valueAtTime"]),
+        "years_left": int(depreciation_data["yearsLeft"]),
+        "salvage_value": int(depreciation_data["salvageValue"]),
         "method": depreciation_data["method"],
         "off_sheet": depreciation_data["offSheet"] 
     }
@@ -404,11 +404,11 @@ def build_depreciation_form_json(depreciation_form_data, depreciation_schedules)
     depreciation_form_dict = {
         "category": depreciation_form_data['category'],
         "description": depreciation_form_data['description'],
-        "startMonth": depreciation_form_data['start_month'],
-        "startYear": depreciation_form_data['start_year'],
-        "valueAtTime": depreciation_form_data['value_at_time'],
-        "yearsLeft": depreciation_form_data['years_left'],
-        "salvageValue": depreciation_form_data['salvage_value'],
+        "startMonth": str(depreciation_form_data['start_month']),
+        "startYear": str(depreciation_form_data['start_year']),
+        "valueAtTime": str(depreciation_form_data['value_at_time']),
+        "yearsLeft": str(depreciation_form_data['years_left']),
+        "salvageValue": str(depreciation_form_data['salvage_value']),
         "method": depreciation_form_data['method'],
         "offSheet": depreciation_form_data['off_sheet'],
         "depreciationSchedule": []
@@ -417,7 +417,7 @@ def build_depreciation_form_json(depreciation_form_data, depreciation_schedules)
     for i in range(len(depreciation_schedules)):
         date = depreciation_schedules[i]["date"]
         amount = float(depreciation_schedules[i]["amount"])
-        depreciation_form_dict["depreciationSchedule"].append({"date": date, "amount": amount})
+        depreciation_form_dict["depreciationSchedule"].append({"date": int(date), "amount": amount})
     
     return depreciation_form_dict
 
