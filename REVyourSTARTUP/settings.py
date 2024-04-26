@@ -80,7 +80,7 @@ TEMPLATES = [
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',  # Local frontend
-    'https://revnj-b4ceb9c89cdc.herokuapp.com',  # Production frontend domain
+    'https://revnj-b4ceb9c89cdc.herokuapp.com/',  # Production frontend domain
 ]
 
 WSGI_APPLICATION = 'REVyourSTARTUP.wsgi.application'

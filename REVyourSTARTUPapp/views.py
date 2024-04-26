@@ -131,6 +131,7 @@ class GetMainFormByUserView(APIView):
     # The post request should contain the User's id in the enpoint link, and also have the "form_name"
     # sent as a JSON, otherwise the response will be an error
     def post(self, request, id):
+        print("in post request")
         form_name = request.data.get("form_name")
         user = get_object_or_404(User, id=id)
         if form_name:
