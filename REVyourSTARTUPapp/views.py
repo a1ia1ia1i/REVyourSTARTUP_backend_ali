@@ -93,11 +93,7 @@ class GetUserByIDView(APIView):
 class CreateMainFormView(APIView):
     #View which allows the main form to be created and linked to a user's id
     #JSON
-    {
-      'user_id': 1,
-      'form_name': 'Sample Form Name'
-    }
-
+    
     def post(self, request):
         user_id = request.data.get('user_id')
         form_name = request.data.get("form_name")
