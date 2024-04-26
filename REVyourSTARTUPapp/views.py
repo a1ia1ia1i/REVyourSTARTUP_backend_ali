@@ -90,28 +90,28 @@ class GetUserByIDView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-#class CreateMainFormView(APIView):
-    # View which allows the main form to be created and linked to a user's id
-    # JSON
-    # {
-    #   'user_id': 1,
-    #   'form_name': 'Sample Form Name'
-    # }
+class CreateMainFormView(APIView):
+    #View which allows the main form to be created and linked to a user's id
+    #JSON
+    {
+      'user_id': 1,
+      'form_name': 'Sample Form Name'
+    }
 
-    # def post(self, request):
-    #     user_id = request.data.get('user_id')
-    #     form_name = request.data.get("form_name")
-    #     user = get_object_or_404(User, id=user_id)
-    #     if form_name:
-    #         serializer = MainFormSerializer(data={'user': user.id, 'form_name': form_name})
-    #     else:
-    #         serializer = MainFormSerializer(data={'user': user.id})
+    def post(self, request):
+        user_id = request.data.get('user_id')
+        form_name = request.data.get("form_name")
+        user = get_object_or_404(User, id=user_id)
+        if form_name:
+            serializer = MainFormSerializer(data={'user': user.id, 'form_name': form_name})
+        else:
+            serializer = MainFormSerializer(data={'user': user.id})
 
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #     else:
-    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if serializer.is_valid():
+            serializer.save()
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     
 
 class GetMainFormByUserView(APIView):
